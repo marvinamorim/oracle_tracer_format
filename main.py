@@ -1,6 +1,7 @@
 import sqlparse
+import re
 
-lines = open('faturamento_demora.log','r')
+lines = open('file.log','r')
 parsed = open('statments.sql', 'w+')
 text = ''
 for line in lines:
@@ -12,11 +13,10 @@ count = 0
 statement_count = 0
 for statement in statements:
     if ' oexec ' in statement:
-        statement = statement.split('\n')
-        
+        statement = statement.split('\n')     
         statement.pop(0)
         statement = '\n'.join(statement)
-        binds = len(statement.split(' :'))-1
+        binds = len(re.split(':[0-9]', statement))-1
         bind_count = 1
         for full_bind in statements[count+1:count+binds+1]:
             bind = full_bind.split('\n')
@@ -24,7 +24,7 @@ for statement in statements:
             statement = statement.replace(f':{bind_count}',bind[0]+f'  /*bind {bind_count}*/')
             bind_count += 1
         statement += ';\n--------------------------------------------------------------------\n'
-        parsed.write(sqlparse.format(statement, reindent=True, keyword_case='upper'))
+        parsed.write(sqlparse.format(statement, reindent=False, keyword_case='upper'))
         statement_count += 1
 
     count += 1
